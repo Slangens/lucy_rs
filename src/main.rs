@@ -7,6 +7,7 @@ use serenity::{
     utils::MessageBuilder,
     
 };
+use std::collections::HashMap;
 
 #[async_trait]
 trait Command {
@@ -40,17 +41,41 @@ impl EventHandler for LucyHandler{
     async fn message(&self, ctx: Context, msg: Message) {       
         if dm_predicate(&self, &ctx, &msg)==true{
             //Change to hashmap or something. Can't have a Yandev situation here.
-            if Serverlist::predicate(&self, &ctx , &msg).await{
+            /*if Serverlist::predicate(&self, &ctx , &msg).await{
                 Serverlist::run(&self, &ctx, &msg).await;
             }
             else {
                 generic_texting_execution(&self, &ctx, &msg).await;
-            }
+            }*/
+
+            let command_short  = vec![String::from("!ss")];
+            let command_long = vec![CommandEnum::Serverlist];
+            let command_hash: HashMap<_, _> = command_short.iter().zip(command_long.iter()).collect();
+
+             match command_hash.get(&msg.content){
+                 Some(cmdname) => {
+                    match **cmdname {
+                        CommandEnum::Serverlist => {
+                            serverlist_run(&self,&ctx,&msg).await;                           
+                        }
+                    };
+                 }
+                 None => {
+                    println!("No command registered. Sending message instead.");
+                    generic_texting_execution(&self, &ctx, &msg).await;
+                 }
+             };
+
+             
+
         }
     }
 
 }
 
+enum CommandEnum {
+    Serverlist,
+}
 
 //Command structs
 struct Serverlist;
@@ -77,6 +102,18 @@ impl Command for Serverlist { //Prints a list of servers upon sending "!ss" in O
     }
 }
 
+async fn serverlist_run (_lh:&LucyHandler,ctx: &Context,_msg: &Message) {
+    let x = match serenity::http::client::Http::get_current_user(&ctx.http).await{
+        Ok(curr_usr) => curr_usr,
+        Err(current_user_err) => {println!("Couldn't get current user, Error {:?}", current_user_err); return}
+    };
+
+    if let Ok(guilds) = x.guilds(&ctx.http).await {
+        for (index, guild) in guilds.into_iter().enumerate() {
+            println!("{}: {}", index, guild.name);
+        }
+    }
+}
 
 //Other functions
 fn dm_predicate (lh:&LucyHandler,_ctx: &Context,msg: &Message) -> bool  {
