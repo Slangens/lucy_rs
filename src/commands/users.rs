@@ -7,7 +7,6 @@ use std::collections::HashSet;
 
 #[group]
 #[only_in(guild)]
-//#[prefixes("Lucy,", "lucy,")]
 #[commands( ping,am_i_slang)]
 struct Users;
 

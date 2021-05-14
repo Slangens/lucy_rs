@@ -14,17 +14,18 @@ use commands::{
 };
 
 
-
 #[async_trait]
 impl EventHandler for LucyHandler{
 
-    async fn ready(&self, _ctx: Context, ready: Ready) {
-        println!("{} is connected!", ready.user.name);       
+    async fn ready(& self, ctx: Context, ready: Ready) {
+        println!("{} is connected!", ready.user.name);
+        
     }
 
     async fn message(&self, ctx: Context, msg: Message) {       
         cmd(&self,&ctx,&msg).await;
     }
+
 
 }
 
@@ -32,7 +33,7 @@ impl EventHandler for LucyHandler{
 
 #[tokio::main]
 async fn main() {
-    let handler = LucyHandler::new(251121149981884423,432969367534305283,432969367534305281,2);
+    let handler = LucyHandler::new(251121149981884423,432969367534305283,432969367534305281);
     let token = std::env::var("DISCORD_TOKEN").expect("No token found.");
     let framework = StandardFramework::new()
         .configure(|c| c.with_whitespace(true)
