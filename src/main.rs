@@ -2,11 +2,14 @@ mod commands; //Imports the command functions
 
 use serenity::{
     async_trait,
-    prelude::*,
     model::{prelude::*,channel::Message, gateway::Ready},
     Client,
     framework::standard::StandardFramework,
 };
+// This trait adds the `register_songbird` and `register_songbird_with` methods
+// to the client builder below, making it easy to install this voice client.
+// The voice client can be retrieved in any command using `songbird::get(ctx).await`.
+use songbird::SerenityInit;
 
 use commands::{ //get all the commands and structures
     control::*,
@@ -16,10 +19,18 @@ use tokio::sync::RwLock;
 use std::sync::Arc;
 
 
+use serenity::{
+    client::{ Context, EventHandler},
+    model::{prelude::ChannelId},
+};
+
+
+
 #[async_trait]
 impl EventHandler for LucyHandler{
     async fn ready(& self, _ctx: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
+            
     }
 
     async fn message(&self, _ctx: Context, _msg: Message) {       
@@ -39,14 +50,18 @@ async fn main() {
                         .delimiters(vec![", ", ","])
                         .owners(vec![UserId(251121149981884423)].into_iter().collect())  //Set owner id here
                         .no_dm_prefix(true) 
+                        .case_insensitivity(true)
                         )
         .group(&USERS_GROUP)
         .group(&CONTROL_GROUP)
+        //.group(&VOICE2_GROUP)
+        //.help(&MY_HELP2)
         .help(&MY_HELP);
 
     let mut lucy_client = Client::builder(token)
         .event_handler(handler)
         .framework(framework)
+        .register_songbird()
         .await
         .expect("Failed to construct Lucy.");
 

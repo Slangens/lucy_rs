@@ -3,7 +3,7 @@ use serenity::{
     prelude::*,
     model::{id::GuildId,id::ChannelId,channel::Message},  
     utils::MessageBuilder,
-    framework::standard::{Args, macros::*, CommandResult},
+    framework::standard::{Args, macros::*, CommandResult,CommandError},
 };
 use std::sync::Arc;
 use std::iter::FromIterator;
@@ -210,13 +210,26 @@ async fn generic_texting_execution (ctx: &Context,msg: &Message)->CommandResult{
         }
         o
     };
+    let typing = id.start_typing(&ctx.http)?;
     
     if let Err(send_error) = id.say(&ctx.http, &response).await {
         println!("Error sending message: {:?}", send_error);      
     }
+    typing.stop();
+
     Ok(())
 }//Sends the message content, modified by message_processing, to the current channel.
 
 fn message_processing(mess: String) -> String{
     mess
 }//Modifies the sent input somehow. Optional.
+
+
+#[hook]
+async fn after_hook(_: &Context, _: &Message, cmd_name: &str, error: Result<(), CommandError>) {
+    //  Print out an error if it happened
+    if let Err(why) = error {
+        println!("Error in {}: {:?}", cmd_name, why);
+    }
+
+}
